@@ -1,11 +1,11 @@
-const http = require('http');
+var express = require('express'),
+  config = require('./config/config');
 
-const server = http.createServer((req, res) => {
-  res.statusCode = 200;
-res.setHeader('Content-Type', 'text/plain');
-res.end('Hello World\n');
+var app = express();
+
+require('./config/express')(app, config);
+
+app.listen(config.port, function () {
+  console.log('Express server listening on port ' + config.port);
 });
 
-server.listen(0, '0.0.0.0', () => {
-  console.log('Node.js app is running...');
-});
