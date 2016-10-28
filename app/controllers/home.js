@@ -1,6 +1,8 @@
 var express = require('express'),
   router = express.Router(),
-  walkUtil = require('../utils/walk');
+  walkUtil = require('../utils/walk'),
+  md5 = require('md5-file'),
+  fs = require('fs');
 
 module.exports = function (app) {
   app.use('/', router);
@@ -28,14 +30,24 @@ router.get('/files', function (req, res, next) {
     if (err) throw err;
     res.contentType("application/json");
     results.forEach(function (result) {
-      var correctedPath = result.replace('../calderia-mods/', '');
-      var length = correctedPath.indexOf('/');
-      var modName = correctedPath.substr(0, length);
+      let correctedPath = result.replace('../calderia-mods/', '');
+      let length = correctedPath.indexOf('/');
+      let modName = correctedPath.substr(0, length);
+      let fileObj = {};
+      let stats = fs.statSync(result);
       if(myMap.has(modName)) {
-        myMap.get(modName).push(correctedPath)
+        fileObj.path = correctedPath;
+        fileObj.md5 = md5.sync(result);
+        fileObj.size = stats.size;
+        fileObj.mtime = stats.mtime;
+        myMap.get(modName).push(fileObj)
       } else {
-        var array = [];
-        array.push(correctedPath);
+        let array = [];
+        fileObj.path = correctedPath;
+        fileObj.md5 = md5.sync(result);
+        fileObj.size = stats.size;
+        fileObj.mtime = stats.mtime;
+        array.push(fileObj);
         myMap.set(modName, array)
       }
       // pathCorrectedResults.push(modName);
