@@ -8,6 +8,10 @@ var MemcachePlus = require('memcache-plus');
 var port = process.env.MEMCACHED_PORT || 11211;
 var client = new MemcachePlus();
 
+client.delete('calderia_mods_cache').then(function () {
+  console.log('Successfully deleted the cache!')
+});
+
 module.exports = function (app) {
   app.use('/', router);
 };
@@ -32,8 +36,10 @@ router.get('/files', function (req, res, next) {
     var cacheKey = "calderia_mods_cache";
     client.get(cacheKey).then(function (value) {
       if(value) {
+        let response = JSON.parse(value);
+        response.cached = true;
         res.contentType("application/json");
-        res.send(value)
+        res.send(response)
       } else {
         let myMap = new Map();
         var pathCorrectedResults = [];
@@ -62,9 +68,12 @@ router.get('/files', function (req, res, next) {
           }
           // pathCorrectedResults.push(modName);
         });
-        var data = JSON.stringify(strMapToObj(myMap));
+        let response = {};
+        response.files = strMapToObj(myMap);
+        let data = JSON.stringify(response);
         client.set(cacheKey, data, 864000);
-        res.send(data)
+        response.cached = false;
+        res.send(JSON.stringify(response))
       }
     });
   });
