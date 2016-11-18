@@ -7,6 +7,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var compress = require('compression');
 var methodOverride = require('method-override');
+var timeout = require('connect-timeout');
 
 module.exports = function(app, config) {
   var env = process.env.NODE_ENV || 'development';
@@ -20,6 +21,7 @@ module.exports = function(app, config) {
   if(env == 'development') {
     app.use(logger('dev'));
   }
+  app.use(timeout('120s'));
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({
     extended: true
